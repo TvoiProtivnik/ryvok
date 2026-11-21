@@ -1,0 +1,17 @@
+{
+  "name": "Рывок — масса, сила, харизма",
+  "short_name": "Рывок",
+  "description": "Дневник набора массы: питание, тренировки, сон, харизма",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#110E2B",
+  "theme_color": "#1B1A4A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -340,6 +340,18 @@ header.top{gap:12px}
 .remrow .rin{min-height:40px;border:1px solid var(--border);border-radius:8px;padding:0 10px;background:var(--bg);width:190px;max-width:100%}
 .remrow select.rin{width:76px}
 .offline{position:fixed;top:8px;left:50%;transform:translateX(-50%);background:var(--orange-s);color:var(--orange);border:1px solid var(--orange);padding:4px 12px;border-radius:999px;font-size:13px;font-weight:600;z-index:11}
+
+/* v7: анкета для нового человека */
+#onb{max-width:460px;width:calc(100% - 32px);border:1px solid var(--border);border-radius:16px;padding:24px;background:var(--bg);color:inherit}
+#onb::backdrop{background:rgba(10,8,30,.6)}
+#onb h2{margin:0 0 4px;font-size:22px}
+#onb p{margin:0 0 16px;font-size:14px;line-height:1.45}
+#onb .og{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#onb label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+#onb label.w{grid-column:1/-1}
+#onb input,#onb select{min-height:42px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:inherit;font:inherit}
+#onb .oacts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+#onb .opriv{font-size:12px;margin-top:12px}
 </style>
 </head>
 <body>
@@ -357,6 +369,7 @@ header.top{gap:12px}
     </nav>
     <div class="hactions">
       <button class="btn" id="exportBtn" aria-label="Скачать Excel"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg><span class="lbl-t">Excel</span></button>
+      <button class="btn" id="shareBtn" aria-label="Поделиться"><svg class="i" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg><span class="lbl-t">Поделиться</span></button>
       <button class="btn" id="settingsBtn" aria-label="Настройки"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span class="lbl-t">Настройки</span></button>
     </div>
   </header>
@@ -463,6 +476,24 @@ header.top{gap:12px}
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<dialog id="onb" aria-labelledby="onbT">
+  <form id="onbForm" method="dialog">
+    <h2 id="onbT">Привет! Это «Рывок» 🔥</h2>
+    <p class="muted">Расскажи о себе — посчитаю твои калории, белок, жиры, углеводы и воду. Всё можно поменять потом в Настройках.</p>
+    <div class="og">
+      <label class="w">Как тебя зовут (необязательно)<input name="name" maxlength="40" autocomplete="given-name"></label>
+      <label>Пол<select name="sex"><option value="m">Мужской</option><option value="f">Женский</option></select></label>
+      <label>Возраст, лет<input name="age" inputmode="numeric" required></label>
+      <label>Рост, см<input name="height" inputmode="decimal" required></label>
+      <label>Вес сейчас, кг<input name="weight" inputmode="decimal" required></label>
+      <label>Цель, кг<input name="target" inputmode="decimal" required></label>
+      <label>Режим<select name="aim"><option value="bulk">Набор массы</option><option value="keep">Поддержание</option><option value="cut">Похудение</option></select></label>
+      <label class="w">Активность<select name="activity"><option value="1.2">Почти не двигаюсь</option><option value="1.375">Лёгкая (1–3 тренировки в неделю)</option><option value="1.55" selected>Средняя (3–5 тренировок)</option><option value="1.725">Высокая (6–7 тренировок)</option></select></label>
+    </div>
+    <p class="muted opriv">🔒 Твои записи хранятся только в этом браузере — автор сайта и другие люди их не видят. Чтобы данные были и на телефоне, и на ПК, подключи свой GitHub-токен в Настройках. Для чата с тренером нужен свой API-ключ нейросети.</p>
+    <div class="oacts"><button type="button" class="btn ghost" id="onbSkip">Позже</button><button type="submit" class="btn primary" id="onbGo">Посчитать и начать</button></div>
+  </form>
+</dialog>
 <script>
 (function(){
 'use strict';
@@ -503,6 +534,7 @@ const CHIPS=['Завтрак: 2 яйца, тост с маслом и кофе �
 
 /* ---------- state ---------- */
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}const d=clone(DEF);if(s&&typeof s==='object'){d.days=s.days||{};d.del=s.del||{};d.setU=s.setU||0;d.mig=s.mig||0;const ss=s.settings||{};Object.assign(d.settings,ss);d.settings.goals=Object.assign({},DEF.settings.goals,ss.goals||{});d.settings.profile=Object.assign({},DEF.settings.profile,ss.profile||{});}return d}
+const FRESH=(()=>{try{return !localStorage.getItem(KEY)}catch(e){return false}})();
 let state=load(),current=todayISO(),tab='meals',undo=[],flash=new Set();
 function save(){qToday();stamp();try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){toast('Не удалось сохранить: хранилище браузера недоступно')}schedSync()}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
@@ -511,7 +543,8 @@ const SKEY='fitsheet.sync',GH='https://api.github.com',GIST_DESC='Fit Sheet sync
 let snap={},snapSet='',syncT=null,syncing=false,syncAgain=false,syncText='';
 let sync=(()=>{try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}})();
 if(!state.del)state.del={};if(!state.setU)state.setU=0;
-if((state.mig||0)<2){state.settings.profile=Object.assign({},state.settings.profile,{sex:'m',age:24,height:185,weight:60,activity:'1.55',aim:'bulk',target:80,startW:60});state.settings.goals={kcal:2930,p:120,f:66,c:464,water:2500};state.mig=2}
+if(FRESH){state.mig=3}else if((state.mig||0)<2){const p=state.settings.profile,D={sex:'m',age:24,height:185,weight:60,activity:'1.55',aim:'bulk',target:80,startW:60};for(const k in D)if(p[k]===undefined||p[k]===null||p[k]==='')p[k]=D[k];state.mig=2}
+if((state.mig||0)<3){const g=state.settings.goals;if(+g.f===66&&+g.c===464){g.f=85;g.c=420;state.setU=Date.now()}state.mig=3}
 function dayKey(x){const c=Object.assign({},x);delete c._u;return JSON.stringify(c)}
 function setKey(){const c=Object.assign({},state.settings);delete c.apiKey;return JSON.stringify(c)}
 function snapAll(){snap={};for(const d in state.days)snap[d]=dayKey(state.days[d]);snapSet=setKey()}
@@ -808,7 +841,7 @@ $('#exportBtn').onclick=()=>{if(!Object.keys(state.days).some(hasData)){toast('�
 window.FitSheet={buildXlsx,workbookSheets,applyAI,getState:()=>state};
 
 /* ---------- На сегодня: харизма, тренировка, масса ---------- */
-const QUOTES=['Дисциплина — это помнить, чего ты хочешь.','20 кг — это 200 маленьких побед по 100 граммов.','Не обязан быть лучшим. Будь лучше, чем вчера.','Мотивация заканчивается. Привычка остаётся.','Еда — тоже тренировка. Доешь свою норму.','Сильное тело начинается с сильного решения.','Не жди идеального дня — сделай обычный день хорошим.','Уверенность — это навык. Навыки тренируются.','Маленький шаг сегодня лучше большого плана на завтра.','Люди запомнят не слова, а то, как им было рядом с тобой.','Харизма — это внимание, которое ты даришь людям.','Через год ты скажешь спасибо себе сегодняшнему.','Боль дисциплины легче боли сожаления.','Сон — бесплатный анаболик. Ложись вовремя.','Тело строится как дом: кирпич за кирпичом, день за днём.','Сомневаешься? Сделай одно отжимание. Потом второе.','Прогресс не всегда виден в зеркале. Он есть в записях.','Спокойствие — сила, которой не нужны доказательства.','Делай то, что нужно, даже когда не хочется. Особенно тогда.','Твой единственный соперник — ты вчерашний.','Привычки обгоняют талант, когда талант ленится.','Говори медленно — уверенным людям некуда спешить.','Без железа тоже растут: главное — прогрессия и еда.','Неудача — это данные, а не приговор.','Сегодня — тот самый «понедельник», с которого ты начинаешь.','Каждая тренировка — голос за того, кем ты хочешь стать.','Смотри людям в глаза — тебе нечего прятать.','80 кг — не мечта, а план с датой.','Не сравнивай свою первую главу с чужой двадцатой.','Ты становишься тем, что делаешь каждый день.'];
+const QUOTES=['Дисциплина — это помнить, чего ты хочешь.','20 кг — это 200 маленьких побед по 100 граммов.','Не обязан быть лучшим. Будь лучше, чем вчера.','Мотивация заканчивается. Привычка остаётся.','Еда — тоже тренировка. Доешь свою норму.','Сильное тело начинается с сильного решения.','Не жди идеального дня — сделай обычный день хорошим.','Уверенность — это навык. Навыки тренируются.','Маленький шаг сегодня лучше большого плана на завтра.','Люди запомнят не слова, а то, как им было рядом с тобой.','Харизма — это внимание, которое ты даришь людям.','Через год ты скажешь спасибо себе сегодняшнему.','Боль дисциплины легче боли сожаления.','Сон — бесплатный анаболик. Ложись вовремя.','Тело строится как дом: кирпич за кирпичом, день за днём.','Сомневаешься? Сделай одно отжимание. Потом второе.','Прогресс не всегда виден в зеркале. Он есть в записях.','Спокойствие — сила, которой не нужны доказательства.','Делай то, что нужно, даже когда не хочется. Особенно тогда.','Твой единственный соперник — ты вчерашний.','Привычки обгоняют талант, когда талант ленится.','Говори медленно — уверенным людям некуда спешить.','Без железа тоже растут: главное — прогрессия и еда.','Неудача — это данные, а не приговор.','Сегодня — тот самый «понедельник», с которого ты начинаешь.','Каждая тренировка — голос за того, кем ты хочешь стать.','Смотри людям в глаза — тебе нечего прятать.','Твоя цель — не мечта, а план с датой.','Не сравнивай свою первую главу с чужой двадцатой.','Ты становишься тем, что делаешь каждый день.'];
 const CH=[['Зрительный контакт','держи взгляд 3–5 секунд с каждым собеседником'],['Уверенная осанка','плечи назад, подбородок ровно — проверяй себя каждый час'],['Медленная речь','говори на 20% медленнее, делай паузу перед важным'],['Полное присутствие','в одном разговоре убери телефон и слушай, не перебивая'],['Искренний комплимент','2 комплимента — поступку или вкусу, не внешности'],['Улыбка первым','улыбнись первым при встрече — 5 раз за день'],['Имя собеседника','запомни и назови по имени 3 человек'],['Начни разговор','перекинься парой фраз с незнакомым: кассир, бариста, сосед'],['Открытые вопросы','задай 3 вопроса «как / почему / что для тебя…»'],['Голос из груди','2 минуты читай вслух низким спокойным голосом'],['Поза силы','2 минуты в открытой позе перед важным делом'],['Визуализация уверенности','3 минуты вспоминай момент, когда был на высоте'],['«Нет» без оправданий','отказывай коротко и спокойно, без длинных объяснений'],['Пауза перед ответом','выдерживай 2 секунды — это выглядит уверенно'],['Тёплое приветствие','здоровайся первым и с энергией'],['Короткая история','расскажи историю на 30–60 сек: завязка → проблема → финал'],['Спокойные руки','без суетливых жестов, не трогай лицо и телефон'],['Благодарность','запиши 3 вещи, за которые благодарен — снимает напряжение'],['Отражение','перескажи мысль собеседника: «правильно понимаю, что…»'],['Запиши свой голос','1 минута о себе на диктофон — послушай, что улучшить'],['Открытые ладони','жестикулируй открытыми ладонями, когда объясняешь'],['Интерес к людям','узнай новую деталь о знакомом и вспомни её в следующий раз'],['Уверенный вход','входя, остановись на секунду, осмотрись и улыбнись'],['Лёгкая самоирония','пошути над собой — без самоунижения'],['Дыхание 4–7–8','3 цикла перед разговором — убирает волнение'],['Похвали чужую идею','вслух и при других людях'],['Шаг из зоны комфорта','сделай то, что чуть пугает: позвони вместо сообщения'],['Веди себя как хозяин','предложи помощь, чай или место — заботься о других']];
 const WA=[['Отжимания','4 подхода почти до отказа'],['Приседания','4 × 20, медленно вниз (3 сек)'],['Отжимания от стула','3 × 12–15, трицепс'],['Выпады','3 × 12 на каждую ногу'],['Планка','3 × 40–60 сек']];
 const WB=[['Подтягивания','4 × максимум; нет турника — тяга лёжа под столом'],['Отжимания, ноги на возвышении','4 подхода почти до отказа'],['Болгарские сплит-приседы','3 × 10–12 на ногу, нога на диване'],['Ягодичный мост на одной ноге','3 × 12'],['Скручивания','3 × 15']];
@@ -1072,7 +1105,31 @@ if(sync.token&&sync.gistId)doSync();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){schedSync(300);remCheck()}});
 setInterval(()=>{if(document.visibilityState==='visible')schedSync(100)},90000);
 if(!state.settings.apiKey)status('info','Чтобы нейросеть сама заполняла таблицу, добавь API-ключ DeepSeek (или другого провайдера) в настройках. Таблицу можно вести и вручную — ячейки редактируются как в Excel.');
+/* ---------- v7: ссылкой можно делиться: у каждого свои данные ---------- */
+(function(){
+  const SITE='https://kucharev7kolja1-afk.github.io/ryvok/';
+  function goalsFor(p){const w=+p.weight,h=+p.height,a=+p.age;const bmr=10*w+6.25*h-5*a+(p.sex==='f'?-161:5);const t=bmr*parseFloat(p.activity||'1.55');
+    const kcal=Math.round((t+(p.aim==='bulk'?350:p.aim==='cut'?-450:0))/10)*10;const pr=Math.round(w*(p.aim==='cut'?2:p.aim==='keep'?1.6:1.8));
+    const f=Math.round(kcal*0.27/9);const c=Math.max(0,Math.round((kcal-pr*4-f*9)/4));return {kcal,p:pr,f,c,water:Math.max(1500,Math.round(w*35/50)*50)}}
+  const ob=document.getElementById('onb'),fm=document.getElementById('onbForm');
+  function finish(){state.settings.onb=1;save();render()}
+  fm.addEventListener('submit',e=>{e.preventDefault();const F=new FormData(fm);const p=Object.assign({},state.settings.profile);
+    for(const k of ['sex','activity','aim'])p[k]=F.get(k)||p[k];p.name=String(F.get('name')||'').trim();
+    for(const k of ['age','height','weight','target']){const v=parseFloat(String(F.get(k)||'').replace(',','.'));if(!(v>0)){toast('Заполни возраст, рост, вес и цель');return}p[k]=v}
+    p.startW=p.weight;state.settings.profile=p;const g=goalsFor(p);state.settings.goals=Object.assign({},state.settings.goals,g);
+    ob.close();finish();toast((p.name?p.name+', готово! ':'Готово! ')+'Твоя норма: '+g.kcal+' ккал, белок '+g.p+' г')});
+  document.getElementById('onbSkip').addEventListener('click',()=>{ob.close();finish()});
+  ob.addEventListener('cancel',()=>{finish()});
+  if(typeof FRESH!=='undefined'&&FRESH&&!state.settings.onb){try{ob.showModal()}catch(e){}}
+  document.getElementById('shareBtn').addEventListener('click',async()=>{
+    const url=/^https?:/.test(location.protocol)?location.origin+location.pathname.replace(/index\.html$/,''):SITE;
+    const text='Рывок — дневник массы, силы и харизмы. У каждого свои данные — они хранятся только в твоём браузере.';
+    try{if(navigator.share){await navigator.share({title:'Рывок',text,url});return}}catch(e){if(e&&e.name==='AbortError')return}
+    try{await navigator.clipboard.writeText(url);toast('Ссылка скопирована. У друга будут свои данные — твои он не увидит')}catch(e){prompt('Скопируй ссылку:',url)}});
+})();
 })();
 </script>
+
+
 </body>
 </html>

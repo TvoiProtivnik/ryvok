@@ -1,2 +1,2 @@
 # Рывок
-Трекер тренировок: [Рывок](https://kucharev7koljaA1.github.io/ryvok/)
+Трекер тренировок: [Рывок](https://tvoiprotivnik.github.io/ryvok/)

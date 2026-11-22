@@ -96,7 +96,7 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom
 .tab:hover{color:var(--text)}
 .tab[aria-selected=true]{color:var(--text);border-bottom-color:var(--blue);background:var(--bg);font-weight:600}
 .cnt{font-size:13px;line-height:20px;min-width:22px;padding:0 6px;border-radius:999px;background:var(--s2);color:var(--muted);font-weight:600;text-align:center}
-.gridscroll{overflow-x:auto}
+.gridscroll{overflow-x:auto;position:relative}
 table.xl{border-collapse:collapse;width:100%;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums}
 .xl th,.xl td{border:1px solid var(--grid);padding:0;height:36px}
 .xl tr>*:first-child{border-left:0}.xl tr>*:last-child{border-right:0}
@@ -301,7 +301,7 @@ header.top{gap:12px}
 .tgl{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer}
 .tgl input{width:18px;height:18px;accent-color:var(--blue);flex:none}
 .tgl small{display:block;color:var(--muted);font-size:13px}
-.gcwrap{overflow-x:auto}
+.gcwrap{overflow-x:auto;position:relative}
 .gc{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
 .gc th,.gc td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
 .gc th:first-child,.gc td:first-child{text-align:left}
@@ -352,6 +352,9 @@ header.top{gap:12px}
 #onb input,#onb select{min-height:42px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:inherit;font:inherit}
 #onb .oacts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
 #onb .opriv{font-size:12px;margin-top:12px}
+.gtip{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(255,122,61,.12);border:1px solid rgba(255,122,61,.35);font-size:13px}.gtip .mini{white-space:nowrap}
+#chips:empty{display:none}
+#favDlg{max-width:540px;width:calc(100% - 24px)}#favDlg h4{margin:14px 0 4px}.frow{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:6px 0}.frow .btn{flex:1;justify-content:flex-start;text-align:left}.frow span{font-size:13px}.frow .mini{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -531,6 +534,7 @@ const COLS={
 const NUMK={meals:['grams','kcal','p','f','c'],workouts:['sets','reps','weight','minutes','km','kcal']};
 const BODY=[['weight','Вес тела','кг'],['waist','Талия','см'],['sleep','Сон','ч'],['water','Вода','мл'],['steps','Шаги','шагов'],['mood','Самочувствие','из 5'],['note','Заметка дня','']];
 const CHIPS=['Завтрак: 2 яйца, тост с маслом и кофе с молоком','Отжимания 4×15, приседания 4×20, планка 3×40 сек','Пробежал 5 км за 28 минут','Вес утром 60,4, спал 8 часов, выпил 500 мл воды','Удали последний перекус'];
+function chipList(){const n=Object.values(state.days||{}).filter(x=>x&&(((x.meals||[]).length)||((x.workouts||[]).length))).length;return n>=3?[]:[CHIPS[0],CHIPS[1],CHIPS[3]]}
 
 /* ---------- state ---------- */
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}const d=clone(DEF);if(s&&typeof s==='object'){d.days=s.days||{};d.del=s.del||{};d.setU=s.setU||0;d.mig=s.mig||0;const ss=s.settings||{};Object.assign(d.settings,ss);d.settings.goals=Object.assign({},DEF.settings.goals,ss.goals||{});d.settings.profile=Object.assign({},DEF.settings.profile,ss.profile||{});}return d}
@@ -610,7 +614,7 @@ function bestMap(){const best={};for(const [d,day] of Object.entries(state.days)
 
 /* ---------- render ---------- */
 function render(){applyHide();renderHeader();renderToday();renderSummary();renderTabs();renderSheet();updUndo()}
-function renderHeader(){const t=todayISO();let lbl=parseISO(current).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1);if(current===t)lbl='Сегодня, '+lbl.split(', ')[1];else if(current===addDays(t,-1))lbl='Вчера, '+lbl.split(', ')[1];$('#dateBtn').textContent=lbl;$('#datePick').value=current;$('#todayBtn').disabled=current===t}
+function renderHeader(){const t=todayISO();let lbl=parseISO(current).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1);if(current===t)lbl='Сегодня, '+lbl.split(', ')[1];else if(current===addDays(t,-1))lbl='Вчера, '+lbl.split(', ')[1];$('#dateBtn').textContent=lbl;$('#datePick').value=current;$('#todayBtn').disabled=current===t;$('#todayBtn').style.display=current===t?'none':''}
 function bar(a,b,good){const p=b?Math.min(100,Math.round(a/b*100)):0;const cls=b&&a>b*1.05&&!good?'over':(good&&b&&a>=b?'done':'');return `<div class="bar ${cls}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${p}"><span style="width:${p}%"></span></div>`}
 function renderSummary(){renderTodayStats();const t=totals(current),g=state.settings.goals;const left=Math.round((g.kcal||0)+t.burn-t.kcal);
  $('#summary').innerHTML=`
@@ -767,7 +771,7 @@ async function send(){if(busy)return;const ta=$('#aiInput');const text=ta.value.
 $('#sendBtn').onclick=send;
 const ta=$('#aiInput');function grow(){ta.style.height='auto';ta.style.height=Math.min(160,ta.scrollHeight)+'px'}
 ta.addEventListener('input',grow);ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
-$('#chips').innerHTML=CHIPS.map(c=>`<button class="chip" type="button">${esc(c)}</button>`).join('');
+$('#chips').innerHTML=chipList().map(c=>`<button class="chip" type="button">${esc(c)}</button>`).join('');
 $('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;ta.value=b.textContent;grow();ta.focus()});
 (function(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const m=$('#mic');if(!SR){m.hidden=true;return}let rec=null;
  m.onclick=()=>{if(rec){rec.stop();return}rec=new SR();rec.lang='ru-RU';rec.interimResults=false;rec.continuous=false;
@@ -793,7 +797,7 @@ $('#settingsBtn').onclick=openSettings;
 dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const s=state.settings;s.apiKey=$('#sKey').value.trim();s.baseUrl=$('#sUrl').value.trim()||DEF.settings.baseUrl;s.model=$('#sModel').value.trim()||DEF.settings.model;
  s.goals={kcal:num($('#gK').value)||DEF.settings.goals.kcal,p:num($('#gP').value)||0,f:num($('#gF').value)||0,c:num($('#gC').value)||0,water:num($('#gW').value)||0};
  s.profile=Object.assign({},s.profile,{sex:$('#pSex').value,age:num($('#pAge').value)||28,height:num($('#pH').value)||175,weight:num($('#pW').value)||75,activity:$('#pAct').value,aim:$('#pAim').value});
- save();render();if(s.apiKey&&$('#aiStatus').classList.contains('info'))$('#aiStatus').className='status';toast('Настройки сохранены')});
+ setSave(['render','ok']);if(s.apiKey&&$('#aiStatus').classList.contains('info'))$('#aiStatus').className='status'});
 $('#testBtn').onclick=async()=>{const r=$('#testRes');const old={...state.settings};state.settings.apiKey=$('#sKey').value.trim();state.settings.baseUrl=$('#sUrl').value.trim()||DEF.settings.baseUrl;state.settings.model=$('#sModel').value.trim()||DEF.settings.model;r.textContent='Проверяю…';
  try{const c=await callAI([{role:'user',content:'Ответь одним словом: ОК'}],false);r.textContent='✓ Работает: «'+String(c).trim().slice(0,30)+'»'}catch(e){r.textContent='✕ '+errText(e)}finally{Object.assign(state.settings,{apiKey:old.apiKey,baseUrl:old.baseUrl,model:old.model})}};
 $('#calcBtn').onclick=()=>{const w=num($('#pW').value)||75,h=num($('#pH').value)||175,a=num($('#pAge').value)||28,sex=$('#pSex').value,act=parseFloat($('#pAct').value),aim=$('#pAim').value;
@@ -851,6 +855,18 @@ let qOff=0;
 const f1=v=>String(Math.round(v*10)/10).replace('.',',');
 function dayNum(d){return Math.round((parseISO(d)-new Date(2024,0,1))/864e5)}
 function checksOf(d){const x=state.days[d];return (x&&x.checks)||[]}
+/* v8: вес по среднему за 7 дней, цели от веса, одно сохранение настроек */
+function dShift(d,n){const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+function wAvg(end,n){end=end||current;n=n||7;const s0=dShift(end,-(n-1));const ws=Object.keys(state.days).filter(d=>d>=s0&&d<=end).map(d=>num((state.days[d].body||{}).weight)).filter(Boolean);return ws.length?{w:r1(ws.reduce((a,b)=>a+b,0)/ws.length),n:ws.length}:null}
+function curWeight(){const a=wAvg();return a?a.w:latestWeight()}
+function goalsFor(p){const w=+p.weight,h=+p.height,a=+p.age;const bmr=10*w+6.25*h-5*a+(p.sex==='f'?-161:5);const t=bmr*parseFloat(p.activity||'1.55');
+  const kcal=Math.round((t+(p.aim==='bulk'?350:p.aim==='cut'?-450:0))/10)*10;const pr=Math.round(w*(p.aim==='cut'?2:p.aim==='keep'?1.6:1.8));
+  const f=Math.round(kcal*0.27/9);const c=Math.max(0,Math.round((kcal-pr*4-f*9)/4));return {kcal,p:pr,f,c,water:Math.max(1500,Math.round(w*35/50)*50),bmr:Math.round(bmr),tdee:Math.round(t)}}
+function applyGoalsW(w){const st=state.settings,p=st.profile;p.weight=w;const g=goalsFor(p);st.goals=Object.assign({},st.goals,{kcal:g.kcal,p:g.p,f:g.f,c:g.c,water:g.water});st.goalsW=w;save();render();return g}
+var _setQ=null;function setSave(after){if(!_setQ){_setQ=new Set();setTimeout(()=>{const q=_setQ;_setQ=null;
+  const cr=document.getElementById('calcRes');if(cr&&cr.dataset.w&&cr.textContent)state.settings.goalsW=+cr.dataset.w;if(cr)delete cr.dataset.w;
+  save();if(q.has('render'))render();else if(q.has('today'))renderToday();if(q.has('rem'))remCheck();if(q.has('ok'))toast('Настройки сохранены')},0)}
+  (after||[]).forEach(x=>_setQ.add(x))}
 function latestWeight(){const ds=Object.keys(state.days).filter(d=>d<=current).sort().reverse();for(const d of ds){const w=num((state.days[d].body||{}).weight);if(w)return w}return num(state.settings.profile.weight)||60}
 function planFor(d){const wd=parseISO(d).getDay();if(wd===1||wd===5)return {n:'Силовая А — дома',l:WA,p:'wa'};if(wd===3)return {n:'Силовая Б — дома',l:WB,p:'wb'};if(wd===0)return {n:'Отдых',l:WR,p:'wr'};return {n:'Лёгкий день',l:WL,p:'wl'}}
 function chkHtml(id,t,sub,on){return `<label class="chk${on?' done':''}"><input type="checkbox" data-chk="${id}"${on?' checked':''}><span><span class="t">${esc(t)}</span>${sub?`<small>${esc(sub)}</small>`:''}</span></label>`}
@@ -949,11 +965,16 @@ function renderToday(){const el=$('#today');if(!el)return;const T=todayISO(),isT
  if(isT&&si.todayOk&&MIL.includes(si.cur)&&!hid('reward')){let last=0;try{last=+(localStorage.getItem('ryvok.reward')||0)}catch(e){}if(si.cur>last){try{localStorage.setItem('ryvok.reward',si.cur)}catch(e){}toast('🏆 Награда: '+si.cur+' '+plural(si.cur,'день','дня','дней')+' подряд!')}}
  renderTodayStats()}
 
-function renderTodayStats(){const el=$('#tStats');if(!el)return;const p=state.settings.profile,g=state.settings.goals,t=totals(current);const cur=latestWeight(),st=num(p.startW)||60,tg=num(p.target)||80;const pct=Math.max(0,Math.min(100,Math.round((cur-st)/(tg-st)*100)))||0;
- el.innerHTML=`<div class="wrow"><b>${f1(cur)} кг</b><span class="muted">цель ${f1(tg)} кг · осталось ${f1(Math.max(0,tg-cur))}</span></div><div class="wbar" role="progressbar" aria-label="Прогресс веса" aria-valuemin="${st}" aria-valuemax="${tg}" aria-valuenow="${cur}"><i style="width:${pct}%"></i></div><p class="hint" style="margin:8px 0 0">Темп: +0,25–0,5 кг в неделю · взвешивайся раз в неделю утром натощак.</p>`;renderGain()}
+function renderTodayStats(){const el=$('#tStats');if(!el)return;const p=state.settings.profile,g=state.settings.goals,t=totals(current);const cur=curWeight(),wa=wAvg(),st=num(p.startW)||60,tg=num(p.target)||80;const pct=Math.max(0,Math.min(100,Math.round((cur-st)/(tg-st)*100)))||0;
+ el.innerHTML=`<div class="wrow"><b>${f1(cur)} кг</b><span class="muted">цель ${f1(tg)} кг · осталось ${f1(Math.max(0,tg-cur))}</span></div><div class="wbar" role="progressbar" aria-label="Прогресс веса" aria-valuemin="${st}" aria-valuemax="${tg}" aria-valuenow="${cur}"><i style="width:${pct}%"></i></div><p class="hint" style="margin:8px 0 0">${wa?'Среднее за 7 дней ('+wa.n+' взвеш.) — не скачет от воды и соли. ':''}Темп: +0,25–0,5 кг в неделю · взвешивайся утром натощак.</p>${goalTips(cur)}`;renderGain()}
+function goalTips(cur){const st=state.settings,p=st.profile;let h='';const gw=num(st.goalsW)||num(p.weight);
+ if(gw&&cur&&Math.abs(cur-gw)>=2){const d=r1(cur-gw);h+=`<div class="gtip"><span>Вес ${d>0?'вырос':'снизился'} на ${f1(Math.abs(d))} кг с прошлого расчёта целей (${f1(gw)} → ${f1(cur)} кг). Нормы ккал и белка пора обновить.</span><button class="mini" type="button" data-gup="${cur}">Обновить цели</button></div>`}
+ if(p.aim==='bulk'){const a1=wAvg(current,7),a2=wAvg(dShift(current,-7),7);const d0=dShift(current,-13);const kc=st.kcalBumpAt||'';
+  if(a1&&a2&&a1.n>=2&&a2.n>=2&&a1.w-a2.w<0.1&&(!kc||kc<d0))h+=`<div class="gtip"><span>Средний вес за 2 недели не растёт (${f1(a2.w)} → ${f1(a1.w)} кг). Добавь +150–200 ккал в день.</span><button class="mini" type="button" data-gbump="1">+200 ккал</button></div>`}
+ return h}
 $('#today').addEventListener('change',e=>{const c=e.target.closest('input[data-chk]');if(!c)return;const id=c.dataset.chk;const d=ensureDay(current);d.checks=d.checks||[];const i=d.checks.indexOf(id);if(c.checked&&i<0)d.checks.push(id);if(!c.checked&&i>=0)d.checks.splice(i,1);if(!d.checks.length)delete d.checks;cleanup(current);save();renderToday();const n=document.querySelector(`[data-chk="${id}"]`);n&&n.focus()});
 $('#today').addEventListener('click',e=>{if(e.target.closest('#qNext')){qOff++;renderToday();$('#qNext').focus()}});
-dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;state.settings.profile.target=num($('#pTarget').value)||80;save();renderToday()});
+dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;state.settings.profile.target=num($('#pTarget').value)||80;setSave(['today'])});
 $('#syConnect').onclick=async()=>{const t=$('#syTok').value.trim(),r=$('#syRes');if(!t){r.textContent='Вставь токен';return}r.textContent='Подключаю…';try{const found=await connectSync(t);r.textContent=found?'Готово ✓ Данные подтянуты с другого устройства':'Готово ✓ Хранилище создано. Теперь вставь этот же токен на телефоне';toast('Синхронизация включена')}catch(e){sync={};storeSync();r.textContent=e.status===401?'Токен не подошёл (401)':e.status===403||e.status===404?'Нет доступа: у токена должно быть право gist':'Не удалось подключиться: '+(e.status||'нет сети')}};
 $('#syNow').onclick=async()=>{if(!sync.gistId){$('#syRes').textContent='Сначала нажми «Подключить»';return}await doSync();$('#syRes').textContent=syncText};
 $('#syOff').onclick=()=>{sync={};storeSync();$('#syTok').value='';setSyncLine('');$('#syRes').textContent='Синхронизация на этом устройстве отключена'};
@@ -969,7 +990,7 @@ function trainingDone(){const pl=planFor(current);pushUndo();const d=ensureDay(c
  pl.l.forEach(e=>{const s=e[1]||'';let m=s.match(/(\d+)\s*[×x]\s*(\d+)/),sets=null,reps=null,mins=null;if(m){sets=+m[1];reps=+m[2]}else{m=s.match(/^(\d+)\s*подход/);if(m)sets=+m[1];const mm=s.match(/(\d+)(?:–\d+)?\s*мин/);if(mm)mins=+mm[1]}
   const kind=pl.p==='wl'?(/растяж/i.test(e[0])?'Растяжка':'Кардио'):'Сила';d.workouts.push({id:uid(),time:tm,name:e[0],kind,sets,reps,weight:null,minutes:mins,km:null,kcal:null,note:s,est:false})});
  d.checks=d.checks||[];['wdone',...pl.l.map((e,i)=>pl.p+i)].forEach(id=>{if(!d.checks.includes(id))d.checks.push(id)});save();render();toast('Тренировка записана во вкладку «Тренировки»')}
-dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const v=Math.round(num($('#sThr').value)||1);state.settings.streakMin=Math.max(1,Math.min(7,v));save();renderToday()});
+dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const v=Math.round(num($('#sThr').value)||1);state.settings.streakMin=Math.max(1,Math.min(7,v));setSave(['today'])});
 
 /* ---------- v5: интерфейс (скрыть плашки) ---------- */
 var HIDE=[['alert','«Не потеряй стрик!»','вечернее напоминание про стрик'],['closed','«День закрыт ✅»','плашка, когда все пункты выполнены'],['quote','Фраза дня','цитата внизу блока «На сегодня»'],['pcard','Прогресс до цели','карточка с весом и полосой'],['gcalc','Калории для набора','таблица по срокам 1–12 месяцев'],['macros','Белки, жиры, углеводы','блок БЖУ под итогами дня'],['hints','Подсказки','пояснения «зачем» и мелкие советы в «На сегодня»'],['reward','Награды стрика','кубки и всплывающие награды']];
@@ -978,14 +999,14 @@ function applyHide(){if(!HIDE)return;HIDE.forEach(a=>document.body.classList.tog
 function setTab(t){document.querySelectorAll('[data-stab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.stab===t)));$('#setMain').hidden=t!=='main';$('#setUi').hidden=t!=='ui'}
 function fillUi(){$('#setUi').innerHTML='<p class="hint" style="margin-top:0">Убери галочку — блок скроется. Вернуть можно здесь же. Настройка синхронизируется между устройствами.</p>'+HIDE.map(([k,t,sub])=>`<label class="tgl"><input type="checkbox" data-hide="${k}"${hid(k)?'':' checked'}><span>${esc(t)}<small>${esc(sub)}</small></span></label>`).join('');setTab('main')}
 document.querySelector('.stabs').addEventListener('click',e=>{const b=e.target.closest('[data-stab]');if(b)setTab(b.dataset.stab)});
-dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const h={};document.querySelectorAll('[data-hide]').forEach(c=>{if(!c.checked)h[c.dataset.hide]=true});state.settings.hide=h;save();render()});
+dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const h={};document.querySelectorAll('[data-hide]').forEach(c=>{if(!c.checked)h[c.dataset.hide]=true});state.settings.hide=h;setSave(['render'])});
 
 /* ---------- v5: тренировка дня из записей ---------- */
 function wDesc(w){const a=[];if(w.sets&&w.reps)a.push(w.sets+'×'+w.reps);else if(w.sets)a.push(w.sets+' подх.');else if(w.reps)a.push(w.reps+' повт.');if(w.weight)a.push(fmt(w.weight)+' кг');if(w.minutes)a.push(fmt(w.minutes)+' мин');if(w.km)a.push(fmt(w.km)+' км');return a.join(' · ')||(w.kind||'')}
 
 /* ---------- v5: автоматический калькулятор набора ---------- */
 function tdee(w){const p=state.settings.profile;const h=num(p.height)||185,a=num(p.age)||24;const b=10*w+6.25*h-5*a+(p.sex==='f'?-161:5);return Math.round(b*(parseFloat(p.activity)||1.55))}
-function renderGain(){const el=$('#gcBody');if(!el)return;const p=state.settings.profile,g=state.settings.goals;const cur=latestWeight()||num(p.weight)||60,tg=num(p.target)||80,need=r1(tg-cur),m0=tdee(cur);
+function renderGain(){const el=$('#gcBody');if(!el)return;const p=state.settings.profile,g=state.settings.goals;const cur=curWeight()||num(p.weight)||60,tg=num(p.target)||80,need=r1(tg-cur),m0=tdee(cur);
  if(need<=0){el.innerHTML=`<p class="hint" style="margin:0">Цель ${f1(tg)} кг достигнута 🎉 Для поддержания — около <b>${fmtI(m0)} ккал</b> в день.</p>`;return}
  const rows=[1,2,3,4,6,9,12].map(n=>{const days=Math.round(n*30.44),wk=need/(days/7),sur=Math.round(need*7700/days),k=Math.round((tdee(cur+need/2)+sur)/10)*10;return {n,k,sur,wk,ok:wk<=0.5,fast:wk>0.75}});
  const best=rows.find(r=>r.ok)||rows[rows.length-1];
@@ -1076,7 +1097,7 @@ function fillRem(){const c=remCfg();const wd=['Вс','Пн','Вт','Ср','Чт'
  $('#remBox').innerHTML=Object.keys(REM_DEF).map(k=>`<div class="remrow"><label><input type="checkbox" data-rem="${k}"${c[k].on?' checked':''}><span>${esc(REM_T[k][0])}<small>${esc(REM_T[k][1])}</small></span></label>${k==='weigh'?`<select class="rin" data-remwd aria-label="День недели">${wd.map((d,i)=>`<option value="${i}"${+c[k].wd===i?' selected':''}>${d}</option>`).join('')}</select>`:''}<input class="rin" data-remt="${k}" value="${esc(c[k].t)}" aria-label="Время, через запятую" placeholder="18:00"></div>`).join('');
  remPermText()}
 function remPermText(){const r=$('#remRes');if(!r)return;if(!('Notification' in window)){r.textContent='Этот браузер не умеет уведомления — будут всплывающие плашки внутри сайта.';return}r.textContent=Notification.permission==='granted'?'Уведомления разрешены ✓':Notification.permission==='denied'?'Уведомления запрещены в браузере — разреши их в настройках сайта.':'Нажми «Разрешить уведомления».'}
-dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const o={};document.querySelectorAll('[data-rem]').forEach(c=>{const k=c.dataset.rem;const t=$(`[data-remt="${k}"]`).value;o[k]={on:c.checked,t:remTimes(t).map(x=>x.k).join(', ')||REM_DEF[k].t};if(k==='weigh')o[k].wd=+($('[data-remwd]').value||0)});state.settings.rem=o;save();remCheck()});
+dlg.addEventListener('close',()=>{if(dlg.returnValue!=='save')return;const o={};document.querySelectorAll('[data-rem]').forEach(c=>{const k=c.dataset.rem;const t=$(`[data-remt="${k}"]`).value;o[k]={on:c.checked,t:remTimes(t).map(x=>x.k).join(', ')||REM_DEF[k].t};if(k==='weigh')o[k].wd=+($('[data-remwd]').value||0)});state.settings.rem=o;setSave(['rem'])});
 $('#remPerm').onclick=async()=>{if(!('Notification' in window)){remPermText();return}try{await Notification.requestPermission()}catch(e){}remPermText()};
 $('#remTest').onclick=()=>notify('Рывок','Так будут выглядеть напоминания 👊','test');
 async function notify(title,body,tag){toast(title+' — '+body);if(!('Notification' in window)||Notification.permission!=='granted')return;const opt={body,tag:'ryvok-'+tag,icon:'icon-192.png',badge:'icon-192.png'};try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg){await reg.showNotification(title,opt);return}}catch(e){}try{new Notification(title,opt)}catch(e){}}
@@ -1104,20 +1125,54 @@ render();netBadge();setTimeout(remCheck,1500);setInterval(remCheck,30000);
 if(sync.token&&sync.gistId)doSync();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){schedSync(300);remCheck()}});
 setInterval(()=>{if(document.visibilityState==='visible')schedSync(100)},90000);
-if(!state.settings.apiKey)status('info','Чтобы нейросеть сама заполняла таблицу, добавь API-ключ DeepSeek (или другого провайдера) в настройках. Таблицу можно вести и вручную — ячейки редактируются как в Excel.');
+if(!state.settings.apiKey)status('info','ИИ сам заполнит таблицу, если добавить API-ключ. Можно и вручную — как в Excel. ');
 /* ---------- v7: ссылкой можно делиться: у каждого свои данные ---------- */
 (function(){
-  const SITE='https://kucharev7kolja1-afk.github.io/ryvok/';
-  function goalsFor(p){const w=+p.weight,h=+p.height,a=+p.age;const bmr=10*w+6.25*h-5*a+(p.sex==='f'?-161:5);const t=bmr*parseFloat(p.activity||'1.55');
-    const kcal=Math.round((t+(p.aim==='bulk'?350:p.aim==='cut'?-450:0))/10)*10;const pr=Math.round(w*(p.aim==='cut'?2:p.aim==='keep'?1.6:1.8));
-    const f=Math.round(kcal*0.27/9);const c=Math.max(0,Math.round((kcal-pr*4-f*9)/4));return {kcal,p:pr,f,c,water:Math.max(1500,Math.round(w*35/50)*50)}}
+  const SITE=/^https?:$/.test(location.protocol)?location.origin+location.pathname.replace(/[^/]*$/,''):'https://tvoiprotivnik.github.io/ryvok/';
   const ob=document.getElementById('onb'),fm=document.getElementById('onbForm');
   function finish(){state.settings.onb=1;save();render()}
   fm.addEventListener('submit',e=>{e.preventDefault();const F=new FormData(fm);const p=Object.assign({},state.settings.profile);
     for(const k of ['sex','activity','aim'])p[k]=F.get(k)||p[k];p.name=String(F.get('name')||'').trim();
     for(const k of ['age','height','weight','target']){const v=parseFloat(String(F.get(k)||'').replace(',','.'));if(!(v>0)){toast('Заполни возраст, рост, вес и цель');return}p[k]=v}
-    p.startW=p.weight;state.settings.profile=p;const g=goalsFor(p);state.settings.goals=Object.assign({},state.settings.goals,g);
+    p.startW=p.weight;state.settings.profile=p;const g=goalsFor(p);state.settings.goals=Object.assign({},state.settings.goals,{kcal:g.kcal,p:g.p,f:g.f,c:g.c,water:g.water});state.settings.goalsW=p.weight;
     ob.close();finish();toast((p.name?p.name+', готово! ':'Готово! ')+'Твоя норма: '+g.kcal+' ккал, белок '+g.p+' г')});
+
+  /* v8: «Пересчитать цели» в Настройках — та же формула, что в анкете */
+  document.getElementById('calcBtn').textContent='Пересчитать цели';
+  document.getElementById('calcBtn').onclick=()=>{const cw=curWeight();const fw=num($('#pW').value);const w=fw||cw||60;
+    const p=Object.assign({},state.settings.profile,{sex:$('#pSex').value,age:num($('#pAge').value)||24,height:num($('#pH').value)||175,weight:w,activity:$('#pAct').value,aim:$('#pAim').value});
+    const g=goalsFor(p);$('#gK').value=g.kcal;$('#gP').value=g.p;$('#gF').value=g.f;$('#gC').value=g.c;$('#gW').value=g.water;$('#pW').value=w;
+    const r=$('#calcRes');r.dataset.w=w;r.textContent='Вес '+f1(w)+' кг · обмен '+fmtI(g.bmr)+' ккал, с активностью '+fmtI(g.tdee)+' ккал. Нажми «Сохранить».'};
+  const wb=document.createElement('button');wb.type='button';wb.className='btn';wb.textContent='Вес = среднее за 7 дней';wb.title='Подставить средний вес за последние 7 дней';
+  wb.onclick=()=>{const a=wAvg();if(!a){toast('За 7 дней нет взвешиваний');return}$('#pW').value=a.w;toast('Вес: '+f1(a.w)+' кг (среднее из '+a.n+')')};
+  document.getElementById('calcBtn').after(wb);
+  document.addEventListener('click',e=>{const u=e.target.closest('[data-gup]');if(u){const g=applyGoalsW(+u.dataset.gup);toast('Цели обновлены: '+g.kcal+' ккал, белок '+g.p+' г');return}
+    const b=e.target.closest('[data-gbump]');if(b){const st=state.settings;st.goals=Object.assign({},st.goals,{kcal:(num(st.goals.kcal)||0)+200,c:(num(st.goals.c)||0)+50});st.kcalBumpAt=current;save();render();toast('+200 ккал: теперь '+st.goals.kcal+' ккал (углеводы +50 г)')}});
+  /* v8: избранное / шаблоны еды в 1 нажатие (state.settings.fav, синхронизируется с настройками) */
+  const favBtn=document.createElement('button');favBtn.className='btn';favBtn.id='favBtn';favBtn.type='button';favBtn.textContent='⭐ Шаблоны еды';
+  document.getElementById('addRowBtn').after(favBtn);
+  const fd=document.createElement('dialog');fd.id='favDlg';document.body.appendChild(fd);
+  const rowsK=rows=>Math.round(rows.reduce((a,r)=>a+(num(r.kcal)||0),0));
+  const clean=r=>{const o={};for(const k of ['type','name','grams','kcal','p','f','c','note'])if(r[k]!=null&&r[k]!=='')o[k]=r[k];if(r.est)o.est=true;return o};
+  const mealsOf=d=>((state.days[d]||{}).meals)||[];
+  const byType=rows=>{const g={};for(const r of rows){const t=r.type||'Перекус';(g[t]=g[t]||[]).push(r)}return g};
+  function favAdd(rows,label){pushUndo();const d=ensureDay(current);const tm=current===todayISO()?nowHM():'';
+    for(const r of rows){const o=Object.assign(clean(r),{id:uid(),time:tm,est:!!r.est});if(!o.type)o.type=guessMeal(tm);d.meals.push(o)}
+    save();render();toast('Добавлено: '+label+' · '+rowsK(rows)+' ккал')}
+  function favHtml(){const fav=state.settings.fav||[];const ym=mealsOf(dShift(current,-1)),Y=byType(ym),T=byType(mealsOf(current));
+    let h='<form method="dialog"><h3 style="margin:0 0 4px">⭐ Шаблоны еды</h3><p class="hint" style="margin:0">В 1 нажатие — без нейросети и без трат на API. Добавляется в выбранный день.</p>';
+    h+='<h4>Мои шаблоны</h4>'+(fav.length?fav.map((f,i)=>`<div class="frow"><button type="button" class="btn" data-fadd="${i}">+ ${esc(f.name)} · ${rowsK(f.rows)} ккал</button><button type="button" class="mini" data-fdel="${i}" title="Удалить шаблон">✕</button></div>`).join(''):'<p class="hint">Пока пусто. Сохрани приём пищи ниже — например, «Мой коктейль».</p>');
+    const yk=Object.keys(Y);h+='<h4>Как вчера</h4>'+(yk.length?yk.map(t=>`<div class="frow"><button type="button" class="btn" data-fy="${esc(t)}">${esc(t)} как вчера · ${rowsK(Y[t])} ккал</button></div>`).join('')+(yk.length>1?`<div class="frow"><button type="button" class="btn" data-fy="*">Весь день как вчера · ${rowsK(ym)} ккал</button></div>`:''):'<p class="hint">Вчера записей еды нет.</p>');
+    const tk=Object.keys(T);h+='<h4>Сохранить в шаблон</h4>'+(tk.length?tk.map(t=>`<div class="frow"><span>${esc(t)}: ${esc(T[t].map(r=>r.name).filter(Boolean).join(', ').slice(0,60))} · ${rowsK(T[t])} ккал</span><button type="button" class="mini" data-fsave="${esc(t)}">⭐ В шаблон</button></div>`).join(''):'<p class="hint">В этот день ещё нет записей еды.</p>');
+    return h+'<div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" value="close">Закрыть</button></div></form>'}
+  fd.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;const st=state.settings,D=t.dataset;
+    if(D.fadd!=null){const f=(st.fav||[])[+D.fadd];if(f){favAdd(f.rows,f.name);fd.close()}}
+    else if(D.fdel!=null){const i=+D.fdel,f=(st.fav||[])[i];if(f&&confirm('Удалить шаблон «'+f.name+'»?')){st.fav=st.fav.filter((_,j)=>j!==i);save();fd.innerHTML=favHtml()}}
+    else if(D.fy!=null){const ym=mealsOf(dShift(current,-1));const rows=D.fy==='*'?ym:ym.filter(r=>(r.type||'Перекус')===D.fy);if(rows.length){favAdd(rows,D.fy==='*'?'весь день как вчера':D.fy+' как вчера');fd.close()}}
+    else if(D.fsave!=null){const rows=mealsOf(current).filter(r=>(r.type||'Перекус')===D.fsave);if(!rows.length)return;
+      const def=rows.length===1&&rows[0].name?rows[0].name:'Мой '+D.fsave.toLowerCase();const n=(prompt('Название шаблона:',def)||'').trim();if(!n)return;
+      st.fav=(st.fav||[]).concat([{id:uid(),name:n.slice(0,40),rows:rows.map(clean)}]).slice(-30);save();fd.innerHTML=favHtml();toast('Шаблон «'+n+'» сохранён')}});
+  favBtn.addEventListener('click',()=>{fd.innerHTML=favHtml();fd.showModal()});
   document.getElementById('onbSkip').addEventListener('click',()=>{ob.close();finish()});
   ob.addEventListener('cancel',()=>{finish()});
   if(typeof FRESH!=='undefined'&&FRESH&&!state.settings.onb){try{ob.showModal()}catch(e){}}
